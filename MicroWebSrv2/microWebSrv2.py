@@ -9,6 +9,7 @@ from .httpRequest  import HttpRequest
 from os            import stat
 from sys           import implementation
 from _thread       import stack_size
+from .os_path import isfile, isdir
 
 # ============================================================================
 # ===( MicroWebSrv2 )=========================================================
@@ -98,21 +99,6 @@ class MicroWebSrv2 :
         self._xasPool         = None
         self.SetNormalConfig()
 
-    # ------------------------------------------------------------------------
-
-    @staticmethod
-    def _physPathExists(physPath) :
-        try :
-            stat(physPath)
-            return True
-        except :
-            return False
-
-    # ------------------------------------------------------------------------
-
-    @staticmethod
-    def _physPathIsDir(physPath) :
-        return (stat(physPath)[0] & MicroWebSrv2._STAT_MODE_DIR != 0)
 
     # ------------------------------------------------------------------------
 
@@ -261,10 +247,10 @@ class MicroWebSrv2 :
             physPath = self._rootPath + urlPath.replace('..', '/')
             if physPath.endswith('/') :
                 physPath = physPath[:-1]
-            if MicroWebSrv2._physPathIsDir(physPath) :
+            if isdir(physPath) :
                 for filename in MicroWebSrv2._DEFAULT_PAGES :
                     p = physPath + '/' + filename
-                    if MicroWebSrv2._physPathExists(p) :
+                    if isfile(p) :
                         return p
             return physPath
         except :
@@ -295,7 +281,7 @@ class MicroWebSrv2 :
     def _validateChangeConf(self, name='Configuration') :
         if self._xasSrv :
             raise MicroWebSrv2Exception('%s cannot be changed while the server is running.' % name)
-    
+
     # ------------------------------------------------------------------------
 
     def EnableSSL(self, certFile, keyFile, caFile=None) :
@@ -330,7 +316,7 @@ class MicroWebSrv2 :
         if self._bindAddr[1] == 443 :
             self._bindAddr = (self._bindAddr[0], 80)
 
-    # ------------------------------------------------------------------------    
+    # ------------------------------------------------------------------------
 
     def SetEmbeddedConfig(self) :
         self._validateChangeConf()

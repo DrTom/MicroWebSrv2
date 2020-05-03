@@ -1,4 +1,4 @@
- 
+
 ![New microWebSrv2](/img/microWebSrv2.png "microWebSrv2")
 
 ![Release](https://img.shields.io/github/v/release/jczic/microwebsrv2?include_prereleases&color=success)
@@ -22,10 +22,10 @@ Mostly used on **Pycom WiPy**, **ESP32**, **STM32** on **Pyboard**, ... **Robust
 ---
 
 ```vhdl
-                _               __    __     _     __            ____  
-      _ __ ___ (_) ___ _ __ ___/ / /\ \ \___| |__ / _\_ ____   _|___ \ 
+                _               __    __     _     __            ____
+      _ __ ___ (_) ___ _ __ ___/ / /\ \ \___| |__ / _\_ ____   _|___ \
      | '_ ` _ \| |/ __| '__/ _ \ \/  \/ / _ | '_ \\ \| '__\ \ / / __) |
-     | | | | | | | (__| | | (_) \  /\  |  __| |_) _\ | |   \ V / / __/ 
+     | | | | | | | (__| | | (_) \  /\  |  __| |_) _\ | |   \ V / / __/
      |_| |_| |_|_|\___|_|  \___/ \/  \/ \___|_.__/\__|_|    \_/ |_____|  JC`zic & HC²
 
 
@@ -49,6 +49,7 @@ Mostly used on **Pycom WiPy**, **ESP32**, **STM32** on **Pyboard**, ... **Robust
     - [Configuring web server](#config-web-srv)
       - [Default pages](#default-pages)
       - [MIME types](#mime-types)
+      - [Pre-compression and content-encoding](#pre-compression)
     - [Starting web server](#start-web-srv)
     - [Handling web routes](#handling-routes)
     - [SSL/TLS security (HTTPS)](#ssl-security)
@@ -90,7 +91,7 @@ which is mainly used on microcontrollers such as Pycom, ESP32 and STM32 on Pyboa
 In a need for scalability and to meet the IoT universe, **microWebSrv2** was developed as a new project
 and has been completely redesigned to be much more robust and efficient that its predecessor.
 
-Internal mechanisms works **directly at I/O level**, are fully asynchronous from end to end, and manages the memory in a highly optimized way.  
+Internal mechanisms works **directly at I/O level**, are fully asynchronous from end to end, and manages the memory in a highly optimized way.
 Also, architecture makes its integration very easy and the source code, **MIT licensed**, remains really small.
 
 ---
@@ -173,7 +174,7 @@ Also, architecture makes its integration very easy and the source code, **MIT li
     ```sh
     > python3 main.py
     ```
-    
+
 2. **Open your web browser at:**
     - [http://localhost](http://localhost) to view the main page
     - [http://localhost/test-redir](http://localhost/test-redir) to test a redirection
@@ -368,6 +369,33 @@ except KeyboardInterrupt :
         | .ico               | image/x-icon           |
 
         > It is possible to add new MIME types globally by calling [**MicroWebSrv2.AddMimeType**](#mws2-addmimetype) static method.
+        >
+
+        ---
+
+      <a name="pre-compression"></a>
+      - ### Pre-compression and content-encoding
+
+        Microcontrollers mostly provide very little file space which limits the
+        size of static files.  The size of CSS and JS assets can be reduced to
+        about 1/10 by pre-compression with the brotli or a little less with gzip
+        compression.
+
+        If for example a file `site.js` is requested and a compressed file
+        `site.js.gzip` is stored within the `RootPath` the server will send the
+        compressed file and set the content-encoding header propertly. The same
+        works with brotli compression, i.g. `site.js.br`.
+
+        This mechanism is technically not quite correct since we do not (and
+        can not) honor the "Accept-Encoding" request header. However,
+        practially all but leagcy browsers like IE6 support `gzip` encoding.
+        Most of the newer ones support brotli which gives about 10% more
+        compression.
+
+        If you have no need for this feature do not pre-compress assets.
+        Everything works normal as before. For modern single-page web
+        applications pre-compressing js files will likely be a game changer on
+        microcontrollers.
 
       ---
 
@@ -376,17 +404,17 @@ except KeyboardInterrupt :
 
       To start **microWebSrv2** server, you must use one of the following methods:
 
-        - **Start in a pool:**  
-          The web server uses an existing asynchronous pool.  
-          If you want to have more than one server, this is the right solution.  
-          > For more documentation, see [**StartInPool(...)**](#mws2-startinpool) method.  
+        - **Start in a pool:**
+          The web server uses an existing asynchronous pool.
+          If you want to have more than one server, this is the right solution.
+          > For more documentation, see [**StartInPool(...)**](#mws2-startinpool) method.
           > If you want details about pools, check the GitHub repository of [XAsyncSockets](https://github.com/jczic/XAsyncSockets) library.
 
-        - **Start in a managed pool:**  
-          The web server automatically creates a new managed asynchronous pool and uses it.  
-          If you only need one server without more specific code, this is the right solution.  
-          However, you will need to define some pool sizing parameters.  
-          In this mode, a call to ```mws2.Stop()``` will release the pool.  
+        - **Start in a managed pool:**
+          The web server automatically creates a new managed asynchronous pool and uses it.
+          If you only need one server without more specific code, this is the right solution.
+          However, you will need to define some pool sizing parameters.
+          In this mode, a call to ```mws2.Stop()``` will release the pool.
           > For more documentation, see [**StartManaged(...)**](#mws2-startmanaged) method.
 
       :cyclone: Example to start a dual http/https web server:
@@ -403,7 +431,7 @@ except KeyboardInterrupt :
 
       srvHttp .StartInPool(xasPool)
       srvHttps.StartInPool(xasPool)
-      
+
       xasPool.AsyncWaitEvents(threadsCount=1)
 
       try :
@@ -420,7 +448,7 @@ except KeyboardInterrupt :
     <a name="handling-routes"></a>
     - ### Handling web routes
 
-      **microWebSrv2** have an easy and efficient web route system.  
+      **microWebSrv2** have an easy and efficient web route system.
       A simple handler function with a decorator allows you to process requests.
 
       :cyclone: Example of a processing handler:
@@ -440,11 +468,11 @@ except KeyboardInterrupt :
     <a name="ssl-security"></a>
     - ### SSL/TLS security (HTTPS)
 
-      **microWebSrv2** allow web server to apply the SSL/TLS security layer.  
+      **microWebSrv2** allow web server to apply the SSL/TLS security layer.
       In this case, a certificate and its private key must be given (with an optional PEM file).
 
-      If you want to test https mode, uncomment the ```mws2.EnableSSL(...)``` call in ```main.py``` file.  
-      After restarting the demo program, open your browser at the following address:  
+      If you want to test https mode, uncomment the ```mws2.EnableSSL(...)``` call in ```main.py``` file.
+      After restarting the demo program, open your browser at the following address:
       [https://localhost](https://localhost)
 
       :warning: The **ssl library** must be implements ```SSLContext``` on Python version to support secured web server.
@@ -454,8 +482,8 @@ except KeyboardInterrupt :
   <a name="xasyncsockets"></a>
   - ## About XAsyncSockets layer
 
-    **XAsyncSockets** is an efficient Python/MicroPython library of managed asynchronous sockets.  
-    > Available under MIT license on GitHub (same author):  
+    **XAsyncSockets** is an efficient Python/MicroPython library of managed asynchronous sockets.
+    > Available under MIT license on GitHub (same author):
       [https://github.com/jczic/XAsyncSockets](https://github.com/jczic/XAsyncSockets)
 
     **XAsyncSockets** layer provides the following features:
@@ -730,12 +758,12 @@ except KeyboardInterrupt :
   - ## Web Routes
 
     Web routes allow you to define conditional access paths to
-    specific resources and react to corresponding http requests.  
+    specific resources and react to corresponding http requests.
     They also provide the possibility of using freer
     conditions that can be retrieved as input elements.
 
     In **microWebSrv2**, a web route is composed by a **processing handler**,
-    a **requested method**, a **requested path** and an optional **name**.  
+    a **requested method**, a **requested path** and an optional **name**.
     The requested path can also consist of variable parts that
     can be retrieved as arguments.
 
@@ -747,7 +775,7 @@ except KeyboardInterrupt :
     <a name="route-process"></a>
     - ### Route Processing
 
-      A route processing is an handler function decorated by the setting of the route.  
+      A route processing is an handler function decorated by the setting of the route.
       This setting uses the ```@WebRoute``` decorator whose definition is as follows:
       ```python
       @WebRoute(method, routePath, name=None)
@@ -764,7 +792,7 @@ except KeyboardInterrupt :
       # <request> is of type HttpRequest
       ```
 
-      The **method argument** can be a string but also one of the following constants:  
+      The **method argument** can be a string but also one of the following constants:
       ```GET```, ```HEAD```, ```POST```, ```PUT```, ```DELETE```, ```OPTIONS```, ```PATCH```
 
       The **routePath argument** must always starts by ```/``` and specifies the relative URL of the route.
@@ -793,13 +821,13 @@ except KeyboardInterrupt :
     <a name="route-args"></a>
     - ### Route Arguments
 
-      It is possible to include route arguments that can be retrieved as input elements.  
+      It is possible to include route arguments that can be retrieved as input elements.
       These arguments are directly defined in the **requested path**
       by naming and framing them with ```<```and ```>``` as follows:
       ```python
       @WebRoute(GET, '/users/<id>/profile/<property>')
       ```
-      In this web route, two arguments are defined: ```id``` and ```property```.  
+      In this web route, two arguments are defined: ```id``` and ```property```.
       Thus, the route is variable and corresponds to the **requested path** from which any argument can be used.
       ```python
       '/users/123/profile/firstname'
@@ -813,7 +841,7 @@ except KeyboardInterrupt :
       # <request> is of type HttpRequest
       # <args> is a dictionary of route arguments
       ```
-      Now, ```args``` can be used like ```args['id']``` or ```args['property']```.  
+      Now, ```args``` can be used like ```args['id']``` or ```args['property']```.
       Note that values can be strings but also integers directly.
 
       ---
@@ -866,8 +894,8 @@ except KeyboardInterrupt :
   <a name="request-class"></a>
   - ## HttpRequest Class
 
-    HttpRequest class represents a received http request by the web server.  
-    It can be obtained in web route handlers or in modules.  
+    HttpRequest class represents a received http request by the web server.
+    It can be obtained in web route handlers or in modules.
     It also allows you to process the response.
 
     ---
@@ -957,8 +985,8 @@ except KeyboardInterrupt :
   <a name="response-class"></a>
   - ## HttpResponse Class
 
-    HttpResponse class is used to manage the reponse of an http request.  
-    It can be obtained by the ```Response``` property of an instantiated HttpRequest.   
+    HttpResponse class is used to manage the reponse of an http request.
+    It can be obtained by the ```Response``` property of an instantiated HttpRequest.
 
     ---
 
@@ -1193,12 +1221,12 @@ except KeyboardInterrupt :
   - ## Additional modules
 
     **microWebSrv2** supports additional modules that can be called during the
-    processing of a web request and can then decide whether or not to intercept it.  
+    processing of a web request and can then decide whether or not to intercept it.
     Modules can simply analyze http requests or responding to them so that
     they cannot continue their normal pipe-line processing.
 
     A module file must be placed in the "```/mods```" directory of the package
-    and must define a class of the same name.  
+    and must define a class of the same name.
     In addition, this class must implement the ```OnRequest(...)``` method
     that will be called at each http request.
 
@@ -1215,10 +1243,10 @@ except KeyboardInterrupt :
     <a name="websockets-mod"></a>
     - ## WebSockets Module
 
-      **WebSockets module** must be loaded first by **microWebSrv2** to process WebSocket connections.  
-      These are fully managed asynchronous I/Os and really many connections can be processed.  
-      After module loaded, do not forget to assign the callback [OnWebSocketAccepted](#ws-mod-onwebsocketaccepted).  
-      If you need to select and process a sub-protocol, you must assign the callback [OnWebSocketProtocol](#ws-mod-onwebsocketprotocol).  
+      **WebSockets module** must be loaded first by **microWebSrv2** to process WebSocket connections.
+      These are fully managed asynchronous I/Os and really many connections can be processed.
+      After module loaded, do not forget to assign the callback [OnWebSocketAccepted](#ws-mod-onwebsocketaccepted).
+      If you need to select and process a sub-protocol, you must assign the callback [OnWebSocketProtocol](#ws-mod-onwebsocketprotocol).
       ```python
       from MicroWebSrv2 import *
 
@@ -1237,7 +1265,7 @@ except KeyboardInterrupt :
       ```
 
       ---
-    
+
       <a name="websockets-mod-prop"></a>
       - ### WebSockets module properties
 
@@ -1268,9 +1296,9 @@ except KeyboardInterrupt :
       <a name="websocket-class"></a>
       - ### WebSocket Class
 
-        WebSocket class is automatically instantiated by WebSockets module.  
-        A WebSocket can be obtained when a new connection is accepted in the callback [OnWebSocketAccepted](#ws-mod-onwebsocketaccepted).  
-        It is also important to assign WebSocket callbacks in order to receive the various events.  
+        WebSocket class is automatically instantiated by WebSockets module.
+        A WebSocket can be obtained when a new connection is accepted in the callback [OnWebSocketAccepted](#ws-mod-onwebsocketaccepted).
+        It is also important to assign WebSocket callbacks in order to receive the various events.
 
         ---
 
@@ -1344,8 +1372,8 @@ except KeyboardInterrupt :
     <a name="pyhtmltemplate-mod"></a>
     - ## PyhtmlTemplate Module
 
-      **PyhtmlTemplate module** must be loaded first by **microWebSrv2** to process **.pyhtml** pages.  
-      With it, you will be able to render HTML pages directly integrating Python/MicroPython language.  
+      **PyhtmlTemplate module** must be loaded first by **microWebSrv2** to process **.pyhtml** pages.
+      With it, you will be able to render HTML pages directly integrating Python/MicroPython language.
       ```python
       from MicroWebSrv2 import *
 

@@ -5,6 +5,7 @@ Copyright © 2019 Jean-Christophe Bos & HC² (www.hc2.fr)
 """
 
 from   os   import stat
+from   .os_path import isfile
 import json
 
 # ============================================================================
@@ -352,13 +353,22 @@ class HttpResponse :
             raise ValueError('"filename" must be a not empty string.')
         if attachmentName is not None and not isinstance(attachmentName, str) :
             raise ValueError('"attachmentName" must be a string or None.')
+        gzip_filepath = filename + '.gz'
+        brotli_filepath = filename + '.br'
         try :
-            size = stat(filename)[6]
-        except :
-            self.ReturnNotFound()
-            return
-        try :
-            file = open(filename, 'rb')
+            if isfile(filename):
+                filepath = filename
+            elif isfile(gzip_filepath):
+                filepath = gzip_filepath
+                self.SetHeader('Content-Encoding', 'gzip')
+            elif isfile(brotli_filepath):
+                filepath = brotli_filepath
+                self.SetHeader('Content-Encoding', 'br')
+            else:
+                self.ReturnNotFound()
+                return
+            size = stat(filepath)[6]
+            file = open(filepath, 'rb')
         except :
             self.ReturnForbidden()
             return
